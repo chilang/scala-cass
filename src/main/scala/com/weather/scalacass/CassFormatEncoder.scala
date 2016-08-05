@@ -1,6 +1,6 @@
 package com.weather.scalacass
 
-import org.joda.time.DateTime
+import java.time.{LocalDate, LocalDateTime, ZoneId}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -45,8 +45,12 @@ trait LowPriorityCassFormatEncoder {
   implicit val bigIntegerFormat = transCassFormatEncoder("varint", (_: BigInt).underlying)
   implicit val bigDecimalFormat = transCassFormatEncoder("decimal", (_: BigDecimal).underlying)
   implicit val floatFormat = transCassFormatEncoder("float", Float.box)
-  implicit val dateTimeFormat = transCassFormatEncoder("timestamp", (_: DateTime).toDate)
+  implicit val dateTimeFormat = transCassFormatEncoder("timestamp", localDateToDate(_: LocalDate))
+  implicit val localDateTimeFormat = transCassFormatEncoder("timestamp", localDateTimeToDate(_: LocalDateTime))
   implicit val blobFormat = transCassFormatEncoder("blob", java.nio.ByteBuffer.wrap)
+
+  private def localDateToDate(d: LocalDate): java.util.Date = java.util.Date.from(d.atStartOfDay(ZoneId.systemDefault()).toInstant)
+  private def localDateTimeToDate(d: LocalDateTime): java.util.Date = java.util.Date.from(d.atZone(ZoneId.systemDefault()).toInstant)
 
   def containerCassFormatEncoder[Coll[_], F, JColl[_] <: java.util.Collection[_], T <: AnyRef](_cassType: String, _encode: F => Either[Throwable, T], lb2JColl: ListBuffer[T] => JColl[T])(implicit ev: Coll[F] <:< Iterable[F]) =
     new CassFormatEncoder[Coll[F]] {

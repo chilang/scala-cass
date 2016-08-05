@@ -1,7 +1,8 @@
 package com.weather.scalacass
 
 import com.datastax.driver.core.exceptions.InvalidTypeException
-import org.joda.time.DateTime
+import java.time.{LocalDate, LocalDateTime}
+
 import org.scalatest.OptionValues
 import com.weather.scalacass.util.CassandraTester
 import ScalaCass._
@@ -74,7 +75,8 @@ class ScalaCassUnitTests extends CassandraTester("testDB", "testTable", List("st
   "map" should "be extracted correctly (wrong 2nd type param)" in testType[Map[String, Long], Map[String, Int]]("m", Map("asdf" -> 10L), Map("fdsa" -> -10L))
   "set" should "be extracted correctly (wrong basic)" in testType[Set[Double], String]("s", Set(123.4), Set(987.6))
   "set" should "be extracted correctly (wrong type param)" in testType[Set[Double], Set[String]]("s", Set(123.4), Set(987.6))
-  "timestamp" should "be extracted correctly" in testType[DateTime, String]("ts", DateTime.now, DateTime.now.minusDays(20))
+  "timestamp" should "be extracted correctly" in testType[LocalDate, String]("ts", LocalDate.now, LocalDate.now.minusDays(20))
+  "timestamp" should "be extracted correctly as LocalDateTime" in testType[LocalDateTime, String]("ts", LocalDateTime.now, LocalDateTime.now.minusDays(20))
   "uuid" should "be extracted correctly" in testType[java.util.UUID, String]("id", java.util.UUID.randomUUID, java.util.UUID.randomUUID)
   "ascii" should "be extracted correctly" in testType[String, Int]("str2", "asdf", "fdsa")
   "blob" should "be extracted correctly (wrong basic)" in testType[Array[Byte], String]("b", "asdf".getBytes, "fdsa".getBytes)

@@ -1,6 +1,8 @@
 package com.weather.scalacass.util
 
-import com.whisk.docker.{DockerContainer, DockerKit, DockerReadyChecker}
+import com.spotify.docker.client.DefaultDockerClient
+import com.whisk.docker.impl.spotify.SpotifyDockerFactory
+import com.whisk.docker.{DockerContainer, DockerFactory, DockerKit, DockerReadyChecker}
 import com.whisk.docker.scalatest.DockerTestKit
 import org.scalatest.time.{Second, Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
@@ -10,6 +12,9 @@ import scala.collection.JavaConverters._
 trait DockerCassandraService extends DockerKit {
 
   val DefaultCqlPort = 9042
+
+  override implicit val dockerFactory: DockerFactory =
+    new SpotifyDockerFactory(DefaultDockerClient.fromEnv().build())
 
   val cassandraContainer = DockerContainer("whisk/cassandra:2.1.8")
     .withPorts(DefaultCqlPort -> Some(DefaultCqlPort))
@@ -23,7 +28,7 @@ trait DockerCassandra extends FlatSpec with Matchers with BeforeAndAfter with Do
   var client: CassandraClient = _
   override def beforeAll(): Unit = {
     super.beforeAll()
-    client = CassandraClient(List("dockerhost"), Some(DefaultCqlPort))
+    client = CassandraClient(List("localhost"), Some(DefaultCqlPort))
   }
 
   after {

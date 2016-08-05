@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/thurstonsand/scala-cass.svg?branch=master)](https://travis-ci.org/thurstonsand/scala-cass)
 
 ### Getting ScalaCass
-you can find it on bintray. Currently only supports **scala 2.11**  
+you can find it on bintray. Currently only supports **scala 2.10**  
 **sbt**
 ```scala
 resolvers += Resolver.jcenterRepo
@@ -67,7 +67,8 @@ val personWithDefault: Person = r.getOrElse[Person](Person("default name", 24, N
 | varint         | BigInt                 |
 | decimal        | BigDecimal             |
 | float          | Float                  |
-| timestamp      | org.joda.time.DateTime |
+| timestamp      | java.time.LocalDate    |
+|                | java.time.LocalDateTime|
 | blob           | Array[Byte]            |
 | list           | List                   |
 | map            | Map                    |

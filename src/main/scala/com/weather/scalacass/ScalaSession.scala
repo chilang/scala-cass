@@ -24,8 +24,8 @@ object ScalaSession {
     Futures.addCallback(
       f,
       new FutureCallback[ResultSet] {
-        def onSuccess(r: ResultSet) = p success r; (): Unit
-        def onFailure(t: Throwable) = p failure t; (): Unit
+        def onSuccess(r: ResultSet): Unit = p success r; ()
+        def onFailure(t: Throwable): Unit = p failure t; ()
       }
     )
     p.future
@@ -36,8 +36,10 @@ object ScalaSession {
     new ScalaSession(keyspace)
   }
 
-  private implicit class ScalaishCache[K, V](val c: Cache[K, V]) extends AnyVal {
-    def getP(k: K, toAdd: => V) = c.get(k, new Callable[V] { def call(): V = toAdd })
+  private implicit class ScalaishCache[K, V](val c: Cache[K, V]) {
+    def getP(k: K, toAdd: => V) = c.get(k, new Callable[V] {
+      override def call(): V = { val z: V = toAdd; z }
+    })
   }
 
   //  class AllowFilteringNotEnabledException(m: String) extends QueryExecutionException(m)

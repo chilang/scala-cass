@@ -2,7 +2,7 @@ package com.weather.scalacass
 
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.exceptions.{InvalidTypeException, QueryExecutionException}
-import org.joda.time.DateTime
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -143,8 +143,14 @@ trait LowPriorityCassFormatDecoder {
     def decode(r: Row, name: String) = tryDecodeE(r, name, (rr, nn) => f2t(r.getDate(name)))
   }
 
-  implicit val dateTimeFormat: CassFormatDecoder[DateTime] =
-    dateFormat.flatMap(d => Try(new DateTime(d)).toEither)
+  implicit val dateTimeFormat = new CassFormatDecoder[LocalDate] {
+    type From = java.time.LocalDate
+    val clazz = classOf[java.time.LocalDate]
+    def f2t(f: From) = Right(f)
+    def decode(r: Row, name: String) = tryDecodeE(r, name, (rr, nn) => Try(Instant.ofEpochMilli(r.getDate(name).getTime).atZone(ZoneId.systemDefault()).toLocalDate).toEither)
+  }
+
+  implicit val localDateTimeFormat: CassFormatDecoder[LocalDateTime] = dateTimeFormat.flatMap(d => Right(d.atStartOfDay()))
 
   implicit val blobFormat = new CassFormatDecoder[Array[Byte]] {
     type From = java.nio.ByteBuffer

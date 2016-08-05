@@ -4,6 +4,7 @@ import com.datastax.driver.core.Row
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness}
 import CassFormatDecoder._
+import com.google.common.base.CaseFormat
 
 trait CCCassFormatDecoder[T] {
   def decode(r: Row): Either[Throwable, T]
@@ -17,7 +18,7 @@ object CCCassFormatDecoder {
   implicit def hConsDecoder[K <: Symbol, H, T <: HList](implicit w: Witness.Aux[K], tdH: Lazy[CassFormatDecoder[H]], tdT: Lazy[CCCassFormatDecoder[T]]) =
     new CCCassFormatDecoder[FieldType[K, H] :: T] {
       def decode(r: Row) = for {
-        h <- tdH.value.decode(r, w.value.name.toString).right
+        h <- tdH.value.decode(r, camel2Snake(w.value.name.toString)).right
         t <- tdT.value.decode(r).right
       } yield field[K](h) :: t
     }
@@ -28,4 +29,6 @@ object CCCassFormatDecoder {
     }
 
   def apply[T: CCCassFormatDecoder] = implicitly[CCCassFormatDecoder[T]]
+
+  private def camel2Snake(c: String): String = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, c)
 }
